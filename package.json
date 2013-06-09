@@ -1,5 +1,5 @@
 {
-  "name": "friend-status",
+  "name": "friendship",
   "version": "0.1.0",
   "description": "Manage friendships between users in your app, knowing when they gets online and offline",
   "author": "Pablo Novas <pjnovas@gmail.com>",
@@ -26,21 +26,21 @@
   },
   "scripts": {
     "blanket": {
-      "pattern": "/friend-status/lib/"
+      "pattern": "/friendship/lib/"
     },
     "test": "./node_modules/.bin/grunt test"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/pjnovas/friend-status.git"
+    "url": "git://github.com/pjnovas/friendship.git"
   },
   "bugs": {
-    "url": "git://github.com/pjnovas/friend-status/issues"
+    "url": "git://github.com/pjnovas/friendship/issues"
   },
   "keywords": [
     "status",
     "manager",
-    "friend-status",
+    "friendship",
     "friends",
     "contacts",
     "online",
