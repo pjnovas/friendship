@@ -66,25 +66,40 @@ describe('Friendship', function(){
     expect(friendship._socketsOf[curr][1]).to.be.equal('sid1-2');
   });
 
-  it('should allow to other user to checkin with a socketId', function(){
+  it('should allow to other user to checkin with a socketId', function(done){
     var curr = 'uid2';
 
+    friendship.on('checkin', function(data){
+      friendship.removeAllListeners('checkin');
+
+      expect(data.userId).to.be.equal(curr);
+
+      var sockets = data.sockets;
+
+      expect(sockets).to.be.an('array');
+      expect(sockets.length).to.be.equal(2);
+      expect(sockets[0]).to.be.equal('sid1-1');
+      expect(sockets[1]).to.be.equal('sid1-2');
+
+      expect(friendship._socketsOf).to.be.an('object');
+      expect(_.keys(friendship._socketsOf).length).to.be.equal(2);
+
+      expect(friendship._socketsOf[curr]).to.be.an('array');
+      expect(friendship._socketsOf[curr].length).to.be.equal(1);
+      expect(friendship._socketsOf[curr][0]).to.be.equal('sid2-1');
+      
+      friendship.checkin(curr, 'sid2-2');
+
+      expect(_.keys(friendship._socketsOf).length).to.be.equal(2);
+
+      expect(friendship._socketsOf[curr]).to.be.an('array');
+      expect(friendship._socketsOf[curr].length).to.be.equal(2);
+      expect(friendship._socketsOf[curr][1]).to.be.equal('sid2-2');
+
+      done();
+    });
+
     friendship.checkin(curr, 'sid2-1');
-
-    expect(friendship._socketsOf).to.be.an('object');
-    expect(_.keys(friendship._socketsOf).length).to.be.equal(2);
-
-    expect(friendship._socketsOf[curr]).to.be.an('array');
-    expect(friendship._socketsOf[curr].length).to.be.equal(1);
-    expect(friendship._socketsOf[curr][0]).to.be.equal('sid2-1');
-    
-    friendship.checkin(curr, 'sid2-2');
-
-    expect(_.keys(friendship._socketsOf).length).to.be.equal(2);
-
-    expect(friendship._socketsOf[curr]).to.be.an('array');
-    expect(friendship._socketsOf[curr].length).to.be.equal(2);
-    expect(friendship._socketsOf[curr][1]).to.be.equal('sid2-2');
   });
 
   it('should allow to checkin an existance socketId', function(){
@@ -193,5 +208,44 @@ describe('Friendship', function(){
     expect(friendship._timeoutOf['sid2-2']).to.not.be.ok();
 
   });
+
+  it('should allow throw checkout when there is no more sockets for the user', function(done){
+    var curr = 'uid1'
+      , fid = 'uid2'
+      , fires = 0;
+
+    var friendshipOther = new Friendship({ expire: 3000 });
+
+    friendshipOther.register(curr, [ fid, 'uid3']);
+    friendshipOther.register(fid, [ curr, 'uid5']);
+
+    friendshipOther.checkin(curr, 'sid11');
+    friendshipOther.checkin(curr, 'sid12');
+    
+    friendshipOther.checkin(fid, 'sid21');
+    friendshipOther.checkin(fid, 'sid22');
+
+    friendshipOther.on('checkout', function(data){
+      fires++;
+      expect(fires).to.be.equal(1);
+      
+      expect(data.userId).to.be.equal(curr);
+      expect(friendshipOther._socketsOf[curr]).to.not.be.ok();
+
+      var sockets = data.sockets;
+
+      expect(sockets).to.be.an('array');
+      expect(sockets.length).to.be.equal(2);
+      expect(sockets[0]).to.be.equal('sid21');
+      expect(sockets[1]).to.be.equal('sid22');
+
+      friendship.removeAllListeners('checkout');
+      done();
+    });
+
+    friendshipOther.checkout(curr, 'sid11');
+    friendshipOther.checkout(curr, 'sid12');
+  });
+
 
 });
