@@ -52,10 +52,66 @@ friendship.unregister('uid1');
 This will run a checkout of all sockets and remove the user from any relationship.
 Can be used to make the user to an offline state on every socket.
 
+#### Events
+```javascript
+friendship.on('checkin', function(data){
+  data.userId // who did the checkin
+  data.sockets // sockets ids to notify (these are the friends which are also online)
+});
+```
+```javascript
+friendship.on('checkout', function(data){
+  data.userId // who did the checkin
+  data.sockets // sockets ids to notify (these are the friends which are also online)
+});
+```
+
+### SocketIO config ( *optional* )
+
+```javascript
+var Friendship = require('friendship')
+  , express = require('express')
+  , socketIO = require('socket.io')
+  , http = require('http');
+
+var friendship = new Friendship({
+  expire: 500
+});
+
+var server = http.createServer(app);
+var io = socketIO.listen(server);
+server.listen(3000);
+
+friendship.events(io, { namespace: "friends" });
+```
+
+#### Client Example
+
+```javascript
+var socket = io.connect('http://localhost:3000/friends');
+
+socket.on('connect', function () {
+  socket.emit('user:checkin', 'uid1');
+
+  socket.on('user:online', function(friendId){
+    console.log('My friend is online!' + friendId);
+  });
+  
+  socket.on('user:offline', function(friendId){
+    console.log('My friend is offline' + friendId);
+  });
+  
+  setTimeout(function(){
+    socket.emit('user:check', 'uid1');
+  }, 250); //faster than expiration, to reset timer
+});
+```
+
 
 ### TODO
 * Add option to use Redis store.
 * A way to clear all.
+* Use the SocketIO Heartbeat to renew expiration timer.
 
 ### Contribute
 
