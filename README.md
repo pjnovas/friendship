@@ -101,7 +101,7 @@ socket.on('connect', function () {
     console.log('My friend is offline' + friendId);
   });
   
-  setTimeout(function(){
+  setInterval(function(){
     socket.emit('user:check', 'uid1');
   }, 250); //faster than expiration, to reset timer
 });
